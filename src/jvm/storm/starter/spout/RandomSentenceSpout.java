@@ -1,5 +1,6 @@
 package storm.starter.spout;
 
+import backtype.storm.metric.api.MultiCountMetric;
 import backtype.storm.spout.SpoutOutputCollector;
 import backtype.storm.task.TopologyContext;
 import backtype.storm.topology.OutputFieldsDeclarer;
@@ -14,12 +15,15 @@ import java.util.Random;
 public class RandomSentenceSpout extends BaseRichSpout {
   SpoutOutputCollector _collector;
   Random _rand;
-
+  
+  transient MultiCountMetric counter;
 
   @Override
   public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
     _collector = collector;
     _rand = new Random();
+    
+    context.registerMetric("counter", counter=new MultiCountMetric(), 60);
   }
 
   @Override
@@ -29,6 +33,7 @@ public class RandomSentenceSpout extends BaseRichSpout {
         "four score and seven years ago", "snow white and the seven dwarfs", "i am at two with nature" };
     String sentence = sentences[_rand.nextInt(sentences.length)];
     _collector.emit(new Values(sentence));
+    counter.scope("sentence").incr();
   }
 
   @Override
@@ -41,7 +46,7 @@ public class RandomSentenceSpout extends BaseRichSpout {
 
   @Override
   public void declareOutputFields(OutputFieldsDeclarer declarer) {
-    declarer.declare(new Fields("word"));
+    declarer.declare(new Fields("sentence"));
   }
 
 }

@@ -7,6 +7,7 @@ import backtype.storm.StormSubmitter;
 import backtype.storm.generated.StormTopology;
 import backtype.storm.tuple.Fields;
 import backtype.storm.tuple.Values;
+import storm.starter.spout.RandomSentenceSpout;
 import storm.trident.TridentState;
 import storm.trident.TridentTopology;
 import storm.trident.operation.BaseFunction;
@@ -32,10 +33,7 @@ public class TridentWordCount {
   }
 
   public static StormTopology buildTopology(LocalDRPC drpc) {
-    FixedBatchSpout spout = new FixedBatchSpout(new Fields("sentence"), 3, new Values("the cow jumped over the moon"),
-        new Values("the man went to the store and bought some candy"), new Values("four score and seven years ago"),
-        new Values("how many apples can you eat"), new Values("to be or not to be the person"));
-    spout.setCycle(true);
+    RandomSentenceSpout spout = new RandomSentenceSpout();
 
     TridentTopology topology = new TridentTopology();
     TridentState wordCounts = topology.newStream("spout1", spout).parallelismHint(16).each(new Fields("sentence"),
